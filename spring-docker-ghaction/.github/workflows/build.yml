@@ -1,0 +1,49 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main  # Hoặc branch bạn muốn theo dõi, ví dụ: master, develop, etc.
+    paths:
+      - '**/*.java'
+      - 'Dockerfile'
+      - 'pom.xml'
+      - 'src/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Check out mã nguồn từ repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Cài đặt Java (nếu cần)
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'  # Hoặc phiên bản JDK bạn đang sử dụng
+
+    # Cài đặt Docker
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    # Build ứng dụng Java Spring Boot (nếu bạn dùng Maven hoặc Gradle)
+    - name: Build with Maven
+      run: mvn clean install -DskipTests
+
+    # Build Docker image
+    - name: Build Docker image
+      run: docker build -t my-app .
+
+    # Log in to Docker Hub (hoặc registry khác nếu bạn sử dụng)
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # Push Docker image lên Docker Hub (hoặc registry khác)
+    - name: Push Docker image
+      run: docker push my-app:latest
